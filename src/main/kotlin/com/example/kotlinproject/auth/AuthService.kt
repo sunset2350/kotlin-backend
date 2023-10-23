@@ -20,30 +20,29 @@ class AuthService(private val database: Database) {
         val record = transaction {
             Identities
                 .select {
-                    Identities.userid eq req.userId
+                    Identities.userid eq req.userid
                 }.singleOrNull()
         }
 
         if (record != null) {
             return 0;
         }
-        val secret = HashUtil.createHash(req.userPassword)
+        val secret = HashUtil.createHash(req.userpassword)
 
         val profileId = transaction {
             try {
 
                 val identityId = Identities.insertAndGetId {
-                    it[this.userid] = req.userId
+                    it[this.userid] = req.userid
                     it[this.secret] = secret
                 }
 
                 val profileId = Profiles.insertAndGetId {
-                    it[this.username] = req.userName
-                    it[this.nickname] = req.nickName
-                    it[this.birth] = req.userBirth
-                    it[this.sex] = req.userSex
-                    it[this.identityId] = identityId.value
-
+                    it[this.username] = req.username
+                    it[this.nickname] = req.nickname
+                    it[this.birth] = req.userbirth
+                    it[this.sex] = req.usersex
+                    it[this.userid] = req.userid
                 }
 
                 return@transaction profileId.value
@@ -71,7 +70,7 @@ class AuthService(private val database: Database) {
                 ?: return@transaction Pair(false, mapOf("message" to "Unauthorized"))
 
             // 프로필정보 조회
-            val profileRecord = p.select { p.identityId eq identityRecord[i.id].value }.singleOrNull()
+            val profileRecord = p.select { p.userid eq userid }.singleOrNull()
                 ?: return@transaction Pair(false, mapOf("message" to "Conflict"))
 
             return@transaction Pair(
@@ -99,9 +98,8 @@ class AuthService(private val database: Database) {
         }
         val token = JwtUtil.createToken(
             payload["id"].toString().toLong(),
+            payload["userid"].toString(),
             payload["username"].toString(),
-            payload["nickname"].toString(),
-            payload["birth"].toString()
         )
 
         return Pair(true, token)

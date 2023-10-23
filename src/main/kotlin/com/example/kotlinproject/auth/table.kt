@@ -13,13 +13,12 @@ object Identities : LongIdTable("identity") {
 }
 
 object Profiles : LongIdTable("profile") {
-    val identityId = reference("identity_id", Identities)
+    val userid = varchar("userid",  100)
     val birth = varchar("birth", 15)
     val nickname = varchar("nickname",  50)
     val username = varchar("username", 100)
     val sex = varchar("sex", 10)
-
-
+//    val image = text("image")
 }
 
 

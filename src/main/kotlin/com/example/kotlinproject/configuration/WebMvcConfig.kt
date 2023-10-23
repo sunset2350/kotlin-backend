@@ -1,4 +1,4 @@
-package com.example.myapp.configuration
+package com.example.kotlinproject.configuration
 
 import com.example.kotlinproject.auth.AuthInterceptor
 import org.springframework.context.annotation.Configuration
@@ -16,14 +16,17 @@ class WebMvcConfig(val authInterceptor: AuthInterceptor) : WebMvcConfigurer {
             .allowedOrigins(
                 "http://localhost:5000",
                 "http://localhost:8080",
-                )
+                "http://127.0.0.1:8080",
+                "http://127.0.0.1:5000",
+                "http://192.168.100.109:8080",
+                "http://192.168.100.109:5000"
+            )
             .allowedMethods("*")
             .allowedHeaders("*")
-
-
     }
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(authInterceptor)
     }
+
 }

@@ -13,17 +13,16 @@ object JwtUtil {
 
     val TOKEN_TIMEOUT = (1000 * 60 * 60 * 24 * 7).toLong()
 
-    fun createToken(id: Long,userId: String, userName: String, nickName: String): String? {
+    fun createToken(id: Long, userid: String, username: String): String? {
         val now = Date()
-
         val exp = Date(now.time+ TOKEN_TIMEOUT)
         val algorithm = Algorithm.HMAC256(secret)
 
+        println( userid + " " +username+ " ")
         return JWT.create()
             .withSubject(id.toString())
-            .withClaim("userId",userId)
-            .withClaim("userName",userName)
-            .withClaim("nickName",nickName)
+            .withClaim("userid",userid)
+            .withClaim("username",username)
             .withIssuedAt(now)
             .withExpiresAt(exp)
             .sign(algorithm)
@@ -35,17 +34,13 @@ object JwtUtil {
 
         return try {
             val decodedJWT: DecodedJWT = verifier.verify(token)
-            // 토큰 검증 제대로 된 상황
-            // 토큰 페이로드(데이터, subject/claim)를 조회
             val id: Long = java.lang.Long.valueOf(decodedJWT.getSubject())
-            val nickName: String = decodedJWT
-                .getClaim("nickName").asString()
-            val userName: String = decodedJWT
-                .getClaim("userName").asString()
-            val userId : String = decodedJWT
-                .getClaim("userId").asString()
+            val username: String = decodedJWT
+                .getClaim("username").asString()
+            val userid : String = decodedJWT
+                .getClaim("userid").asString()
 
-            AuthProfile(id, nickName, userName,userId)
+            AuthProfile(id, userid,username)
         } catch (e: JWTVerificationException) {
             // 토큰 검증 오류 상황
             null

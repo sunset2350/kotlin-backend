@@ -12,11 +12,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 @RequestMapping("/auth")
 class AuthController(private val service: AuthService) {
 
+
     @PostMapping("/sign")
     fun signUp(@RequestBody req: SignupRequest): ResponseEntity<Long> {
         val profileId = service.createIdentity(req)
         if (profileId > 0) {
             return ResponseEntity.status(HttpStatus.CREATED).body(profileId)
+
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(profileId)
         }
@@ -31,12 +33,12 @@ class AuthController(private val service: AuthService) {
 
         val (result, message) = service.authenticate(userid, userPassword)
 
+
         if (result) {
-            println("ok")
             val cookie = Cookie("token", message)
             cookie.path = "/"
             cookie.maxAge = (JwtUtil.TOKEN_TIMEOUT / 1000L).toInt()
-            cookie.domain = "localhost"
+            cookie.domain = "192.168.100.109"
 
             res.addCookie(cookie)
 
@@ -44,9 +46,8 @@ class AuthController(private val service: AuthService) {
                 .status(HttpStatus.FOUND)
                 .location(
                     ServletUriComponentsBuilder
-                        .fromHttpUrl("http://localhost:5000/")
+                        .fromHttpUrl("http://192.168.100.109:5000/login")
                         .build().toUri()
-
                 )
 
                 .build<Any>()
@@ -56,10 +57,10 @@ class AuthController(private val service: AuthService) {
             .status(HttpStatus.FOUND)
             .location(
                 ServletUriComponentsBuilder
-                    .fromHttpUrl("http://localhost:5500/login.html?err=$message")
-                    .build().toUri()
-            )
-            .build<Any>()
+                    .fromHttpUrl("http://192.168.100.109:5000/login.html?err=$message")
+                    .build()
+                    .toUri()
+            ).build<Any>()
     }
 
 }

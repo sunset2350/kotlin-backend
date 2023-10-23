@@ -39,15 +39,9 @@ dependencies {
 	testImplementation("org.springframework.amqp:spring-rabbit-test")
 
 
-//	// https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-//
-//	// spring-data-jdbc
-//	// application.properties
-//	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-jdbc
-//	//	implementation("org.springframework.data:spring-data-jdbc:3.1.3")
-//
-//	// expose 의존성
+	implementation("org.springframework.data:spring-data-jdbc:3.1.3")
+
 	implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
 	implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
 	implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
@@ -55,10 +49,6 @@ dependencies {
 	implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
 	implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
 	implementation("org.jetbrains.exposed:exposed-money:$exposedVersion")
-//
-//	// spring-data-jdbc 내장, 데이터소스 객체 생성 자동화
-//	// spring transaction 호환, @Transaction
-//	// 스프링 트랜잭션 매니저를 안 써야 더 디테일한 처리를 할 수 있음.
 	implementation("org.jetbrains.exposed:exposed-spring-boot-starter:$exposedVersion")
 
 	implementation("com.auth0:java-jwt:4.4.0")
