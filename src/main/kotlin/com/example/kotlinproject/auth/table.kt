@@ -8,17 +8,18 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.context.annotation.Configuration
 
 object Identities : LongIdTable("identity") {
-    val userid = varchar("userid",  100)
+    val userLoginId = varchar("userLoginId",  100)
     val secret = varchar("secret",  200)
 }
 
 object Profiles : LongIdTable("profile") {
-    val userid = varchar("userid",  100)
+    val userLoginId = varchar("userLoginId",  100)
     val birth = varchar("birth", 15)
     val nickname = varchar("nickname",  50)
     val username = varchar("username", 100)
     val sex = varchar("sex", 10)
-//    val image = text("image")
+    val image = text("image")
+    val introduction = varchar("introduction", 30)
 }
 
 

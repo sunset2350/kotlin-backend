@@ -11,7 +11,7 @@ data class SignupRequest (
 
 data class AuthProfile(
     val id: Long = 0,
-    val userid : String,
+    val userLoginId : String,
     val username: String,
 )
 

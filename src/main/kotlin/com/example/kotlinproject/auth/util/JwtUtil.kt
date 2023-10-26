@@ -9,7 +9,7 @@ import com.example.kotlinproject.auth.AuthProfile
 import java.util.*
 
 object JwtUtil {
-    var secret = "your-secret"
+    var secret = "werojw@eoirjew1313"
 
     val TOKEN_TIMEOUT = (1000 * 60 * 60 * 24 * 7).toLong()
 
@@ -17,8 +17,6 @@ object JwtUtil {
         val now = Date()
         val exp = Date(now.time+ TOKEN_TIMEOUT)
         val algorithm = Algorithm.HMAC256(secret)
-
-        println( userid + " " +username+ " ")
         return JWT.create()
             .withSubject(id.toString())
             .withClaim("userid",userid)

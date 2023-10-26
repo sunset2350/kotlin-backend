@@ -26,19 +26,19 @@ class AuthController(private val service: AuthService) {
 
     @PostMapping("/signin")
     fun signIn(
-        @RequestParam userid: String,
+        @RequestParam userLoginId: String,
         @RequestParam userPassword: String,
         res: HttpServletResponse,
     ): ResponseEntity<*> {
 
-        val (result, message) = service.authenticate(userid, userPassword)
+        val (result, message) = service.authenticate(userLoginId, userPassword)
 
 
         if (result) {
             val cookie = Cookie("token", message)
             cookie.path = "/"
             cookie.maxAge = (JwtUtil.TOKEN_TIMEOUT / 1000L).toInt()
-            cookie.domain = "192.168.100.109"
+            cookie.domain = "localhost"
 
             res.addCookie(cookie)
 
@@ -46,7 +46,7 @@ class AuthController(private val service: AuthService) {
                 .status(HttpStatus.FOUND)
                 .location(
                     ServletUriComponentsBuilder
-                        .fromHttpUrl("http://192.168.100.109:5000/login")
+                        .fromHttpUrl("http://localhost:5000/")
                         .build().toUri()
                 )
 
@@ -57,10 +57,12 @@ class AuthController(private val service: AuthService) {
             .status(HttpStatus.FOUND)
             .location(
                 ServletUriComponentsBuilder
-                    .fromHttpUrl("http://192.168.100.109:5000/login.html?err=$message")
+                    .fromHttpUrl("http://localhost:5000/login.html?err=$message")
                     .build()
                     .toUri()
             ).build<Any>()
+
+
     }
 
 }

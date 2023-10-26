@@ -20,7 +20,7 @@ class AuthService(private val database: Database) {
         val record = transaction {
             Identities
                 .select {
-                    Identities.userid eq req.userid
+                    Identities.userLoginId eq req.userid
                 }.singleOrNull()
         }
 
@@ -33,7 +33,7 @@ class AuthService(private val database: Database) {
             try {
 
                 val identityId = Identities.insertAndGetId {
-                    it[this.userid] = req.userid
+                    it[this.userLoginId] = req.userid
                     it[this.secret] = secret
                 }
 
@@ -42,7 +42,11 @@ class AuthService(private val database: Database) {
                     it[this.nickname] = req.nickname
                     it[this.birth] = req.userbirth
                     it[this.sex] = req.usersex
-                    it[this.userid] = req.userid
+                    it[this.userLoginId] = req.userid
+                    it[this.image] = ""
+                    it[this.introduction] = ""
+
+
                 }
 
                 return@transaction profileId.value
@@ -57,7 +61,7 @@ class AuthService(private val database: Database) {
 
     }
 
-    fun authenticate(userid: String, userPassword: String): Pair<Boolean, String?> {
+    fun authenticate(userLoginId: String, userPassword: String): Pair<Boolean, String?> {
         val (result, payload) = transaction(
             database.transactionManager.defaultIsolationLevel,
             readOnly = true
@@ -66,17 +70,17 @@ class AuthService(private val database: Database) {
             val p = Profiles;
 
             // 인증정보 조회
-            val identityRecord = i.select { i.userid eq userid }.singleOrNull()
+            val identityRecord = i.select { i.userLoginId eq userLoginId }.singleOrNull()
                 ?: return@transaction Pair(false, mapOf("message" to "Unauthorized"))
 
             // 프로필정보 조회
-            val profileRecord = p.select { p.userid eq userid }.singleOrNull()
+            val profileRecord = p.select { p.userLoginId eq userLoginId }.singleOrNull()
                 ?: return@transaction Pair(false, mapOf("message" to "Conflict"))
 
             return@transaction Pair(
                 true, mapOf(
                     "secret" to identityRecord[i.secret],
-                    "userid" to identityRecord[i.userid],
+                    "userid" to identityRecord[i.userLoginId],
                     "id" to profileRecord[p.id],
                     "nickname" to profileRecord[p.nickname],
                     "username" to profileRecord[p.username],

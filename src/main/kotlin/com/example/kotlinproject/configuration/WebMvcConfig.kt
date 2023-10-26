@@ -19,7 +19,9 @@ class WebMvcConfig(val authInterceptor: AuthInterceptor) : WebMvcConfigurer {
                 "http://127.0.0.1:8080",
                 "http://127.0.0.1:5000",
                 "http://192.168.100.109:8080",
-                "http://192.168.100.109:5000"
+                "http://192.168.100.109:5000",
+                "http://192.168.100.153:8080",
+                "http://192.168.100.153:5000"
             )
             .allowedMethods("*")
             .allowedHeaders("*")
