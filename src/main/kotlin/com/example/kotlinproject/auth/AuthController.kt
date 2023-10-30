@@ -15,6 +15,9 @@ class AuthController(private val service: AuthService) {
 
     @PostMapping("/sign")
     fun signUp(@RequestBody req: SignupRequest): ResponseEntity<Long> {
+
+        
+
         val profileId = service.createIdentity(req)
         if (profileId > 0) {
             return ResponseEntity.status(HttpStatus.CREATED).body(profileId)

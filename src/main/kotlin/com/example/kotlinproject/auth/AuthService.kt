@@ -43,7 +43,6 @@ class AuthService(private val database: Database) {
                     it[this.birth] = req.userbirth
                     it[this.sex] = req.usersex
                     it[this.userLoginId] = req.userid
-                    it[this.image] = ""
                     it[this.introduction] = ""
 
 

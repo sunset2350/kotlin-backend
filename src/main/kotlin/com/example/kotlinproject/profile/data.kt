@@ -8,5 +8,11 @@ data class ProfileResponse(
     val nickname: String,
     val birth: String,
     val introduction: String,
-    val image: String
+)
+
+data class ProfileFile(
+    val id : Long,
+    var uuidFileName : String,
+    val originalFileName : String,
+    val contentType: String,
 )

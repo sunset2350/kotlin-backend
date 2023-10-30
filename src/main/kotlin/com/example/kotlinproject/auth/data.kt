@@ -15,6 +15,25 @@ data class AuthProfile(
     val username: String,
 )
 
+data class Profile(
+    val id: Long,
+    val userid: String,
+    val birth:String,
+    val nickname: String,
+    val username: String,
+    val sex : String,
+    val introduction:String,
+    val files: List<Profile>
+)
+
+
+data class ProfileResponse(
+    val id : Long,
+    var uuidFileName : String,
+    val originalFileName : String,
+    val contentType: String,
+)
+
 
 
 

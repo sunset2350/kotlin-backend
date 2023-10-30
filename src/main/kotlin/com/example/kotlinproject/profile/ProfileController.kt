@@ -2,28 +2,30 @@ package com.example.kotlinproject.profile
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
+import com.example.kotlinproject.auth.Profile
 import com.example.kotlinproject.auth.Profiles
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import jakarta.servlet.annotation.MultipartConfig
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestAttribute
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.sql.Connection
+import java.util.UUID
 
 @RestController
 @RequestMapping("/user")
 
 class ProfileController {
 
-
+    private val POST_FILE_PATH = "files/post"
 
 
 //    @Auth
@@ -61,20 +63,24 @@ class ProfileController {
                     r[Profiles.sex],
                     r[Profiles.nickname],
                     r[Profiles.birth],
-                    r[Profiles.introduction],
-                    r[Profiles.image]
+                    r[Profiles.introduction]
                 )
             }
         }
 
     @Auth
-    @PutMapping("/{userid}")
+    @PostMapping("/{userid}")
     fun editProfile(
         @PathVariable userid: String,
-        @RequestBody request: dataModify,
         @RequestAttribute authProfile: AuthProfile,
+        @RequestParam files: Array<MultipartFile>,
+//        @RequestParam nickname : String,
+//        @RequestParam username: String,
+//        @RequestParam sex : String,
+//        @RequestParam birth : String,
+//        @RequestParam introduction : String
 
-        ): ResponseEntity<Any> {
+    ): ResponseEntity<ProfileResponse> {
         transaction {
             Profiles.select {
                 (Profiles.userLoginId eq userid) and (Profiles.id eq authProfile.id)
@@ -82,19 +88,70 @@ class ProfileController {
         } ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
 
+        val dirPath = Paths.get(POST_FILE_PATH)
+        if (!Files.exists(dirPath)) {
+            Files.createDirectories(dirPath)
+        }
+
+
+        val filesList = mutableListOf<Map<String, String?>>()
+
+        runBlocking {
+            files.forEach {
+                launch {
+                    println("filename: ${it.originalFilename}")
+
+                    val uuidFileName =
+                        buildString {
+                            append(UUID.randomUUID().toString())
+                            append(".") // 확장자
+                            append(it.originalFilename!!.split(".").last())
+                        }
+                    val filePath = dirPath.resolve(uuidFileName)
+
+                    it.inputStream.use {
+                        Files.copy(it, filePath, StandardCopyOption.REPLACE_EXISTING)
+                    }
+
+
+                    filesList.add(
+                        mapOf(
+                            "uuidFileName" to uuidFileName,
+                            "contentType" to it.contentType,
+                            "originalFileName" to it.originalFilename
+                        )
+                    )
+                }
+            }
+
+        }
+
+
 
 
         transaction {
-            Profiles.update({ Profiles.userLoginId eq userid }) {
-                it[username] = request.username
-                it[nickname] = request.nickname
-                it[sex] = request.sex
-                it[birth] = request.birth
-                it[introduction] = request.introduction
-                it[image] = request.image
+            Profiles.replace  {
+
+                it[this.username] = username
+                it[this.nickname] = nickname
+                it[this.sex] = sex
+                it[this.birth] = birth
+                it[this.introduction] = introduction
             }
         }
-        return ResponseEntity.ok().build()
+
+        transaction {
+            Profiles.batchUpsert(filesList)  {
+                this[Profiles.userLoginId] = Profiles.userLoginId
+                this[Profiles.originalFileName] = it["originalFileName"] as String
+                this[Profiles.uuidFileName] = it["uuidFileName"] as String
+                this[Profiles.contentType] = it["contentType"] as String
+            }
+        }
+
+
+
+        return ResponseEntity.status(HttpStatus.CREATED).build()
     }
 
 
