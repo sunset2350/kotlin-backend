@@ -22,8 +22,7 @@ data class Profile(
     val nickname: String,
     val username: String,
     val sex : String,
-    val introduction:String,
-    val files: List<Profile>
+    val introduction:String
 )
 
 

@@ -18,9 +18,9 @@ object Profiles : LongIdTable("profile") {
     val nickname = varchar("nickname",  50)
     val username = varchar("username", 100)
     val sex = varchar("sex", 10)
-    val originalFileName = varchar("original_file_name", 200).default("")
-    val uuidFileName = varchar("uuidFileName", 50).default("")
-    val contentType = varchar("content_type", 100).default("")
+    val originalFileName = varchar("original_file_name", 200)
+    val uuidFileName = varchar("uuidFileName", 50)
+    val contentType = varchar("content_type", 100)
     val introduction = varchar("introduction", 30)
 }
 

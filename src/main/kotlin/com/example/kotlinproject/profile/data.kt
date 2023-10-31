@@ -8,6 +8,7 @@ data class ProfileResponse(
     val nickname: String,
     val birth: String,
     val introduction: String,
+    val uuidFileName: String
 )
 
 data class ProfileFile(

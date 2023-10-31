@@ -2,13 +2,10 @@ package com.example.kotlinproject.profile
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
-import com.example.kotlinproject.auth.Profile
+
 import com.example.kotlinproject.auth.Profiles
-import jakarta.servlet.annotation.MultipartConfig
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -18,7 +15,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.sql.Connection
-import java.util.UUID
+import java.util.*
 
 @RestController
 @RequestMapping("/user")
@@ -28,26 +25,13 @@ class ProfileController {
     private val POST_FILE_PATH = "files/post"
 
 
-//    @Auth
-//    @GetMapping
-//    fun fetch() = transaction {
-//        Profiles.selectAll().map { r ->
-//            ProfileResponse(
-//                r[Profiles.id].toString(),r[Profiles.userid], r[Profiles.username],
-//                r[Profiles.sex], r[Profiles.nickname],
-//                r[Profiles.birth],r[Profiles.introduction],r[Profiles.image]
-//
-//            )
-//        }
-//    }
-
     @Auth
     @GetMapping("/profile")
     fun showProfile(@RequestAttribute authProfile: AuthProfile): List<ProfileResponse> =
         transaction(Connection.TRANSACTION_READ_UNCOMMITTED, readOnly = false) {
             val query = when {
                 authProfile.userLoginId != null -> Profiles.select {
-                    (Profiles.id eq authProfile.id)
+                    (Profiles.userLoginId eq authProfile.userLoginId)
                 }
 
                 else -> Profiles.select {
@@ -63,91 +47,101 @@ class ProfileController {
                     r[Profiles.sex],
                     r[Profiles.nickname],
                     r[Profiles.birth],
-                    r[Profiles.introduction]
+                    r[Profiles.introduction],
+                    r[Profiles.uuidFileName]
                 )
             }
         }
 
     @Auth
-    @PostMapping("/{userid}")
+    @PutMapping("/update")
     fun editProfile(
-        @PathVariable userid: String,
         @RequestAttribute authProfile: AuthProfile,
-        @RequestParam files: Array<MultipartFile>,
-//        @RequestParam nickname : String,
-//        @RequestParam username: String,
-//        @RequestParam sex : String,
-//        @RequestParam birth : String,
-//        @RequestParam introduction : String
+        @RequestParam username: String,
+        @RequestParam sex: String,
+        @RequestParam birth: String,
+        @RequestParam introduction: String,
+        @RequestParam("file", required = false) file: Optional<MultipartFile>,
 
-    ): ResponseEntity<ProfileResponse> {
+        ): ResponseEntity<ProfileResponse> {
+
+
         transaction {
             Profiles.select {
-                (Profiles.userLoginId eq userid) and (Profiles.id eq authProfile.id)
+                (Profiles.userLoginId eq authProfile.userLoginId)
             }.firstOrNull()
-        } ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        } ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
 
 
         val dirPath = Paths.get(POST_FILE_PATH)
+
         if (!Files.exists(dirPath)) {
             Files.createDirectories(dirPath)
         }
 
 
-        val filesList = mutableListOf<Map<String, String?>>()
 
-        runBlocking {
-            files.forEach {
-                launch {
-                    println("filename: ${it.originalFilename}")
 
-                    val uuidFileName =
-                        buildString {
-                            append(UUID.randomUUID().toString())
-                            append(".") // 확장자
-                            append(it.originalFilename!!.split(".").last())
-                        }
-                    val filePath = dirPath.resolve(uuidFileName)
 
-                    it.inputStream.use {
-                        Files.copy(it, filePath, StandardCopyOption.REPLACE_EXISTING)
+        if (file.isPresent && !file.get().isEmpty) {
+
+            val filesList = mutableListOf<Map<String, String?>>()
+
+            val uuidFileName =
+                buildString {
+                    append(UUID.randomUUID().toString())
+                    append(".") // 확장자
+                    append(file.get().originalFilename!!.split(".").last())
+                }
+            val filePath = dirPath.resolve(uuidFileName)
+
+            val result = file.get().inputStream.use { stream ->
+                Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING)
+            }
+
+
+            filesList.add(
+                mapOf(
+                    "uuidFileName" to uuidFileName,
+                    "contentType" to file.get().contentType,
+                    "originalFileName" to file.get().originalFilename
+                )
+            )
+
+
+            transaction {
+
+                for (fileInfo in filesList) {
+                    val originalFileName = fileInfo["originalFileName"] as String
+                    val uuidFileName = fileInfo["uuidFileName"] as String
+                    val contentType = fileInfo["contentType"] as String
+
+
+                    Profiles.update({ Profiles.userLoginId eq authProfile.userLoginId }) {
+                        it[Profiles.username] = username
+                        it[Profiles.nickname] = nickname
+                        it[Profiles.sex] = sex
+                        it[Profiles.birth] = birth
+                        it[Profiles.introduction] = introduction
+                        it[Profiles.originalFileName] = originalFileName
+                        it[Profiles.uuidFileName] = uuidFileName
+                        it[Profiles.contentType] = contentType
                     }
-
-
-                    filesList.add(
-                        mapOf(
-                            "uuidFileName" to uuidFileName,
-                            "contentType" to it.contentType,
-                            "originalFileName" to it.originalFilename
-                        )
-                    )
                 }
             }
-
         }
-
-
-
-
         transaction {
-            Profiles.replace  {
-
-                it[this.username] = username
-                it[this.nickname] = nickname
-                it[this.sex] = sex
-                it[this.birth] = birth
-                it[this.introduction] = introduction
+            Profiles.update({ Profiles.userLoginId eq authProfile.userLoginId }) {
+                it[Profiles.username] = username
+                it[Profiles.nickname] = nickname
+                it[Profiles.sex] = sex
+                it[Profiles.birth] = birth
+                it[Profiles.introduction] = introduction
             }
         }
 
-        transaction {
-            Profiles.batchUpsert(filesList)  {
-                this[Profiles.userLoginId] = Profiles.userLoginId
-                this[Profiles.originalFileName] = it["originalFileName"] as String
-                this[Profiles.uuidFileName] = it["uuidFileName"] as String
-                this[Profiles.contentType] = it["contentType"] as String
-            }
-        }
+
+
 
 
 
