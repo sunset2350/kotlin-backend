@@ -2,10 +2,7 @@ package com.example.kotlinproject.review
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
-import com.example.kotlinproject.review.ProductReview.username
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.javatime.datetime
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.http.HttpStatus
@@ -16,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.sql.Connection
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping("/review")
@@ -52,6 +49,9 @@ class ReviewController {
         @RequestBody productReviewResponse: ProductReviewResponse
     ): ResponseEntity<out Map<String, Any?>> {
 
+
+        val currentDateTime = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val (result, response) = transaction {
             val result = ProductReview.insert {
                 it[username] = productReviewResponse.username
@@ -59,7 +59,7 @@ class ReviewController {
                 it[reviewContent] = productReviewResponse.reviewContent
                 it[reviewCount] = productReviewResponse.reviewCount
                 it[userLoginId] = productReviewResponse.productId
-                it[reviewDate] = LocalDateTime.now().toString()
+                it[reviewDate] = currentDateTime.format((formatter))
             }.resultedValues
                 ?: return@transaction Pair(false, null)
 
