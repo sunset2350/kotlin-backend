@@ -13,7 +13,7 @@ object JwtUtil {
 
     val TOKEN_TIMEOUT = (1000 * 60 * 60 * 24 * 7).toLong()
 
-    fun createToken(id: Long, userid: String, username: String): String? {
+    fun createToken(id: Long, userid: String, username: String, nickname: String): String? {
         val now = Date()
         val exp = Date(now.time+ TOKEN_TIMEOUT)
         val algorithm = Algorithm.HMAC256(secret)
@@ -21,6 +21,7 @@ object JwtUtil {
             .withSubject(id.toString())
             .withClaim("userid",userid)
             .withClaim("username",username)
+            .withClaim("nickname",nickname)
             .withIssuedAt(now)
             .withExpiresAt(exp)
             .sign(algorithm)
@@ -37,8 +38,10 @@ object JwtUtil {
                 .getClaim("username").asString()
             val userid : String = decodedJWT
                 .getClaim("userid").asString()
+            val nickname : String = decodedJWT
+                .getClaim("nickname").asString()
 
-            AuthProfile(id, userid,username)
+            AuthProfile(id, userid,username,nickname)
         } catch (e: JWTVerificationException) {
             // 토큰 검증 오류 상황
             null

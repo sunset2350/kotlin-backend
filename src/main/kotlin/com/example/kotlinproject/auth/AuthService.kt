@@ -106,6 +106,7 @@ class AuthService(private val database: Database) {
             payload["id"].toString().toLong(),
             payload["userid"].toString(),
             payload["username"].toString(),
+            payload["nickname"].toString(),
         )
 
         return Pair(true, token)

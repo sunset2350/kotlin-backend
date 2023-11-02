@@ -57,8 +57,9 @@ class InqueryController(
 
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val (userLoginId, username, productid, inqueryCategory, inqueryContent) = request
         val dateTime = LocalDateTime.now()
+        val (userLoginId, username, productid, inqueryCategory, inqueryContent) = request
+
 
 
         val insertedId = SimpleJdbcInsert(template)

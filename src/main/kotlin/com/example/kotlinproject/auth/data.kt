@@ -13,6 +13,7 @@ data class AuthProfile(
     val id: Long = 0,
     val userLoginId : String,
     val username: String,
+    val nickname: String
 )
 
 data class Profile(

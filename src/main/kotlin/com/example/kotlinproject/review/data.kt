@@ -1,21 +1,20 @@
 package com.example.kotlinproject.review
 
-data class ProductReviewResponse(
-    val id : Long,
-    val userLoginId: String,
-    val username: String,
-    val productId : String,
-    val reviewContent : String,
-    val reviewCount : String,
-    val reviewDate : String
+data class ProductReviewRequest(
+    val reviewContent : String?,
+    val reviewCount : String?,
 )
 
 data class ProductResponse(
-    val id : String,
-    val username : String,
-    val productId: String,
-    val reviewContent: String,
-    val reviewCount : String,
-    val reviewDate : String
+    val nickname: String?,
+    val reviewContent: String?,
+    val reviewCount: String?,
+    val reviewResponse: String?
 )
 
+data class UserReviewRespone(
+    val productId: String,
+    val reviewContent : String?,
+    val reviewCount : String?,
+    val OrderDate : String
+)

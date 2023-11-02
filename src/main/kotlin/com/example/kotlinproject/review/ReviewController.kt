@@ -2,17 +2,25 @@ package com.example.kotlinproject.review
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
+import com.example.kotlinproject.order.OrderMenu
+import kotlinx.coroutines.selects.select
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.sql.Connection
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -22,75 +30,66 @@ import java.time.format.DateTimeFormatter
 class ReviewController {
 
 
-    @Auth
-    @GetMapping("/all")
-    fun showReview(@RequestAttribute authProfile: AuthProfile): List<ProductResponse> {
-        fun fetch() = transaction {
-            ProductReview.selectAll().map { r ->
+    @GetMapping("/{productId}")
+    fun showReview(@PathVariable productId: String): Map<String, Any?> =
+        transaction(Connection.TRANSACTION_READ_UNCOMMITTED, readOnly = true) {
+            val result = OrderMenu.select {
+                OrderMenu.productId eq productId and OrderMenu.reviewContent.isNotNull()
+            }.map {
                 ProductResponse(
-                    r[ProductReview.id].toString(),
-                    r[ProductReview.username],
-                    r[ProductReview.productId],
-                    r[ProductReview.reviewContent],
-                    r[ProductReview.reviewCount],
-                    r[ProductReview.reviewDate],
+                    it[OrderMenu.nickname],
+                    it[OrderMenu.reviewContent],
+                    it[OrderMenu.reviewCount],
+                    it[OrderMenu.reviewResponse]
                 )
+            }
+
+
+            mapOf("data" to result)
+        }
+
+    @Auth
+    @GetMapping("/user")
+    fun userReview(
+        @RequestAttribute authProfile: AuthProfile,
+    ): Map<String, Any?> = transaction(Connection.TRANSACTION_READ_UNCOMMITTED, readOnly = true) {
+        val result = OrderMenu.select {
+            OrderMenu.userLoginId eq authProfile.userLoginId and OrderMenu.Permission.eq("true")
+        }.map {
+            UserReviewRespone(
+                it[OrderMenu.productId],
+                it[OrderMenu.reviewContent],
+                it[OrderMenu.reviewCount],
+                it[OrderMenu.OrderDate]
+            )
+
+        }
+        return@transaction mapOf("user review" to result)
+    }
+
+
+
+
+    @Auth
+    @PutMapping("/user/{productId}")
+    fun createReview(
+        @RequestAttribute authProfile: AuthProfile,
+        @RequestBody productReviewRequest: ProductReviewRequest
+    ): ResponseEntity<Map<String, Any?>> {
+
+        transaction {
+            OrderMenu.select {
+                (OrderMenu.userLoginId eq authProfile.userLoginId and OrderMenu.Permission.eq("true"))
 
             }
         }
-
-        return fetch()
-    }
-
-    @Auth
-    @PostMapping("/{productId}")
-    fun createReview(
-        @RequestAttribute authProfile: AuthProfile,
-        @RequestBody productReviewResponse: ProductReviewResponse
-    ): ResponseEntity<out Map<String, Any?>> {
-
-
-        val currentDateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val (result, response) = transaction {
-            val result = ProductReview.insert {
-                it[username] = productReviewResponse.username
-                it[productId] = productReviewResponse.productId
-                it[reviewContent] = productReviewResponse.reviewContent
-                it[reviewCount] = productReviewResponse.reviewCount
-                it[userLoginId] = productReviewResponse.productId
-                it[reviewDate] = currentDateTime.format((formatter))
-            }.resultedValues
-                ?: return@transaction Pair(false, null)
-
-            val record = result.first()
-
-            return@transaction Pair(
-                true, ProductReviewResponse(
-                    record[ProductReview.id].value,
-                    record[ProductReview.userLoginId],
-                    record[ProductReview.username],
-                    record[ProductReview.productId],
-                    record[ProductReview.reviewContent],
-                    record[ProductReview.reviewCount],
-                    record[ProductReview.reviewDate].toString(),
-                )
-            )
-        }
-
-        if (result) {
-            return ResponseEntity
-                .status(HttpStatus.CREATED).body(mapOf("data" to response))
-        }
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(mapOf("data" to response,"error" to "conflict"))
 
 
 
     }
 }
+
+
 
 
 
