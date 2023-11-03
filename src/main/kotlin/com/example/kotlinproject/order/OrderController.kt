@@ -2,27 +2,28 @@ package com.example.kotlinproject.order
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
-import com.example.kotlinproject.auth.Profiles
+
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
+
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
 @RestController
 @RequestMapping("/order")
-class OrderController {
+class OrderController(private val orderService: OrderService,private val rabbitTemplate: RabbitTemplate) {
 
 
     @Auth
     @PostMapping("/{productId}")
     fun orderMenu(
-        @RequestBody request: OrderRequest,
-        @RequestAttribute authProfile: AuthProfile
+        @RequestBody request: OrderRequest, @RequestAttribute authProfile: AuthProfile
     ): ResponseEntity<Map<String, Any?>> {
 
         val currentDateTime = LocalDateTime.now()
@@ -41,8 +42,7 @@ class OrderController {
                 it[address] = request.address
                 it[productPrice] = request.productPrice
                 it[OrderDate] = currentDateTime.format(formatter)
-            }.resultedValues
-                ?: return@transaction Pair(false, null)
+            }.resultedValues ?: return@transaction Pair(false, null)
 
             println(result)
             val record = result.first()
@@ -66,13 +66,13 @@ class OrderController {
             )
         }
         if (result) {
-            return ResponseEntity
-                .status(HttpStatus.CREATED).body(mapOf("data" to response))
+
+            rabbitTemplate.convertAndSend("orderExchange","orderkey",result)
+            return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("data" to response))
+
         }
 
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body(mapOf("data" to response, "error" to "conflict"))
-    }
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(mapOf("data" to response, "error" to "conflict"))
 
+    }
 }

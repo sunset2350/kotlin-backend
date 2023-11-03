@@ -3,7 +3,7 @@ package com.example.kotlinproject.inquery
 data class ProductInqueryResponse(
     val id: Long,
     val userLoginId: String,
-    val username: String,
+    val nickname: String,
     val productId: String,
     val inqueryCategory: String,
     val inqueryContent: String,
@@ -13,7 +13,7 @@ data class ProductInqueryResponse(
 
 data class ProductCreateRequest(
     val userLoginId: String,
-    val username: String,
+    val nickname: String,
     val productId: String,
     val inqueryCategory : String,
     val inqueryContent: String,
@@ -22,5 +22,5 @@ data class ProductCreateRequest(
 
 fun ProductCreateRequest.validate() =
     !(this.productId.isEmpty() || this.inqueryContent.isEmpty()
-            || this.userLoginId.isEmpty() || this.username.isEmpty())
+            || this.userLoginId.isEmpty() || this.nickname.isEmpty())
 

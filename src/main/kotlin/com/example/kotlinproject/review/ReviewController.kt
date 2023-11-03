@@ -68,8 +68,6 @@ class ReviewController {
     }
 
 
-
-
     @Auth
     @PutMapping("/user/{productId}")
     fun createReview(
@@ -78,15 +76,22 @@ class ReviewController {
     ): ResponseEntity<Map<String, Any?>> {
 
         transaction {
-            OrderMenu.select {
-                (OrderMenu.userLoginId eq authProfile.userLoginId and OrderMenu.Permission.eq("true"))
-
+            val result = OrderMenu.update({
+                (OrderMenu.userLoginId eq authProfile.userLoginId) and (OrderMenu.Permission.eq("true")) and (OrderMenu.productId eq productReviewRequest.productId)
+            }) {
+                it[reviewContent] = productReviewRequest.reviewContent
+                it[reviewCount] = productReviewRequest.reviewCount
             }
+            val response = if (result > 0) {
+                ResponseEntity.status(HttpStatus.OK).body("Updated $result records")
+            } else {
+                ResponseEntity.status(HttpStatus.CONFLICT).body("No records updated")
+            }
+            return@transaction response
         }
-
-
-
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build()
     }
+
 }
 
 

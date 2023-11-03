@@ -21,5 +21,4 @@ data class OrderRequest(
     val quantity : Int,
     val address : String,
     val productPrice : Int
-
 )

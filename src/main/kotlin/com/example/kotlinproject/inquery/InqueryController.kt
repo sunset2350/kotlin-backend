@@ -34,7 +34,7 @@ class InqueryController(
             ProductInqueryResponse(
                 rs.getLong("id"),
                 rs.getString("userLoginId"),
-                rs.getString("username"),
+                rs.getString("nickname"),
                 rs.getString("productId"),
                 rs.getString("inqueryCategory"),
                 rs.getString("inqueryContent"),
@@ -58,7 +58,7 @@ class InqueryController(
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val dateTime = LocalDateTime.now()
-        val (userLoginId, username, productid, inqueryCategory, inqueryContent) = request
+        val (userLoginId, nickname, productid, inqueryCategory, inqueryContent) = request
 
 
 
@@ -67,7 +67,7 @@ class InqueryController(
             .usingGeneratedKeyColumns("id")
             .usingColumns(
                 "userLoginId",
-                "username",
+                "nickname",
                 "productid",
                 "inqueryCategory",
                 "inqueryContent",
@@ -77,7 +77,7 @@ class InqueryController(
             .executeAndReturnKey(
                 mapOf(
                     "userLoginId" to authProfile.userLoginId,
-                    "username" to authProfile.username,
+                    "nickname" to authProfile.nickname,
                     "productid" to productid,
                     "inqueryCategory" to inqueryCategory,
                     "inqueryContent" to inqueryContent,
@@ -91,7 +91,7 @@ class InqueryController(
                     "inquery" to
                             ProductInqueryResponse(
                                 insertedId.toLong(),
-                                userLoginId, username, productid, inqueryCategory, inqueryContent, dateTime.toString())
+                                userLoginId, nickname, productid, inqueryCategory, inqueryContent, dateTime.toString())
                 )
             )
 

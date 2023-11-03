@@ -1,6 +1,7 @@
 package com.example.kotlinproject.review
 
 data class ProductReviewRequest(
+    val productId: String,
     val reviewContent : String?,
     val reviewCount : String?,
 )
