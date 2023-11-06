@@ -10,10 +10,11 @@ import java.time.LocalDate
 
 object ProductReview : LongIdTable("ProductReview") {
     val userLoginId = varchar("userLoginId", 100)
-    val username = varchar("username", 100)
+    val nickname = varchar("nickname",30)
     val productId = varchar("productId", 100)
+    val birth = varchar("birth",30)
     val reviewContent = largeText("reviewContent")
-    val reviewCount = varchar("reviewCount",10)
+    val scope = varchar("reviewCount",10)
     val reviewDate = varchar("reviewDate",50).default(LocalDate.now().toString())
 }
 

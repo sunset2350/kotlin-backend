@@ -3,6 +3,7 @@ package com.example.kotlinproject.review
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
 import com.example.kotlinproject.order.OrderMenu
+import com.example.kotlinproject.scrap.data
 import kotlinx.coroutines.selects.select
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -28,14 +29,18 @@ import java.time.format.DateTimeFormatter
 @RestController
 @RequestMapping("/review")
 
-class ReviewController {
+class ReviewController (private val create: ReviewService){
 
 
     @GetMapping("/{productId}")
+
     fun showReview(
         @PathVariable productId: String, @RequestParam page: Int,
         @RequestParam size: Int
     ): Map<String, Any?> =
+
+    fun showReview(@PathVariable productId: Long): Map<String, Any?> =
+
         transaction(Connection.TRANSACTION_READ_UNCOMMITTED, readOnly = true) {
             val result = OrderMenu.select {
                 OrderMenu.productId eq productId and OrderMenu.reviewContent.isNotNull()
@@ -52,6 +57,7 @@ class ReviewController {
             mapOf("data" to result)
         }
 
+<<<<<<< HEAD
     @Auth
     @GetMapping("/user")
     fun userReview(
@@ -80,32 +86,72 @@ class ReviewController {
             reviewCount.toLong()
         )
     }
+=======
+//    @Auth
+//    @GetMapping("/user")
+//    fun userReview(
+//        @RequestAttribute authProfile: AuthProfile,
+//    ): Map<String, Any?> = transaction(Connection.TRANSACTION_READ_UNCOMMITTED, readOnly = true) {
+//        val result = OrderMenu.select {
+//            OrderMenu.userLoginId eq authProfile.userLoginId and OrderMenu.Permission.eq("true")
+//        }.map {
+//            UserReviewRespone(
+//                it[OrderMenu.productId],
+//                it[OrderMenu.reviewContent],
+//                it[OrderMenu.reviewCount],
+//                it[OrderMenu.OrderDate]
+//            )
+//
+//        }
+//        return@transaction mapOf("user review" to result)
+//    }
+>>>>>>> 2f8b79c15e8bf081eb3b246ffa231c45266e2c70
 
     @Auth
     @PutMapping("/user/{productId}")
     fun createReview(
         @RequestAttribute authProfile: AuthProfile,
-        @RequestBody productReviewRequest: ProductReviewRequest
+        @RequestBody userReviewCreate: UserReviewCreate
     ): ResponseEntity<Map<String, Any?>> {
 
-        transaction {
+        val result = transaction {
             val result = OrderMenu.update({
-                (OrderMenu.userLoginId eq authProfile.userLoginId) and (OrderMenu.Permission.eq("true")) and (OrderMenu.productId eq productReviewRequest.productId)
+                (OrderMenu.userLoginId eq authProfile.userLoginId) and (OrderMenu.Permission.eq("true")) and (OrderMenu.productId eq userReviewCreate.productId)
             }) {
-                it[reviewContent] = productReviewRequest.reviewContent
-                it[reviewCount] = productReviewRequest.reviewCount
+                it[reviewContent] = userReviewCreate.reviewContent
+                it[reviewCount] = userReviewCreate.reviewCount
             }
-            val response = if (result > 0) {
-                ResponseEntity.status(HttpStatus.OK).body("Updated $result records")
-            } else {
-                ResponseEntity.status(HttpStatus.CONFLICT).body("No records updated")
-            }
-            return@transaction response
-        }
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build()
-    }
+            if (result > 0) {
+                val data = OrderMenu.select {
+                    (OrderMenu.userLoginId eq authProfile.userLoginId) and
+                            (OrderMenu.Permission eq "true") and
+                            (OrderMenu.productId eq userReviewCreate.productId)
+                }.toList()
 
+
+                val response = reviewRequest(
+                    id = data.first()[OrderMenu.id].value,
+                    brandName = data.first()[OrderMenu.brandName],
+                    productId = data.first()[OrderMenu.productId],
+                    reviewContent = data.first()[OrderMenu.reviewContent],
+                    scope = data.first()[OrderMenu.reviewCount],
+                    reviewAnswer = null,
+                    gender = authProfile.sex,
+                    birth = authProfile.birth
+                )
+                println(response)
+                create.createReview(response)
+            }
+
+
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build()
+    }
 }
+
+
+
+
 
 
 

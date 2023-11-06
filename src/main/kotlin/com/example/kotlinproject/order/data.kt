@@ -1,24 +1,46 @@
 package com.example.kotlinproject.order
 
 data class OrderResponse(
-    val id : Long,
-    val userLoginId : String,
-    val username : String,
-    val nickname : String,
-    val permission : String,
-    val productId : String,
-    val quantity : Int,
-    val address : String,
-    val reviewContent : String?,
-    val reviewCount : String?,
-    val orderDate : String,
-    val productPrice : Int,
-    val reviewResponse : String?
+    val id: Long,
+    val userLoginId: String,
+    val username: String,
+    val nickname: String,
+    val permission: String,
+    val brandName : String,
+    val productId: Long,
+    val productName: String,
+    val quantity: Int,
+    val address: String,
+    val reviewContent: String?,
+    val reviewCount: Int?,
+    val orderDate: String,
+    val productPrice: Int,
+    val reviewResponse: String?
 )
 
 data class OrderRequest(
-    val productId : String,
-    val quantity : Int,
-    val address : String,
-    val productPrice : Int
+    val id: Long,
+    val brandName: String,
+    val productId: Long,
+    val productName: String,
+    val quantity: Int,
+    val address: String,
+    val productPrice: Int
 )
+
+data class Order(
+    val userId: Long,
+    val orderId: Long?,
+    val productId: Long,
+    val quantity: Int,
+    val address:String,
+)
+
+data class Review(
+    val orderId: Long?,
+    val userId: Long,
+    val productId: Long,
+    val quantity: Int,
+    val address: String,
+
+    )
