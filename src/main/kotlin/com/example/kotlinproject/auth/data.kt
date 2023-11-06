@@ -6,14 +6,16 @@ data class SignupRequest (
     val userpassword : String,
     val nickname : String,
     val usersex : String,
-    val userbirth : String
+    val birth : String
 );
 
 data class AuthProfile(
     val id: Long = 0,
     val userLoginId : String,
     val username: String,
-    val nickname: String
+    val nickname: String,
+    val birth : String,
+    val sex : String
 )
 
 data class Profile(

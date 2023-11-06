@@ -40,7 +40,7 @@ class AuthService(private val database: Database) {
                 val profileId = Profiles.insertAndGetId {
                     it[this.username] = req.username
                     it[this.nickname] = req.nickname
-                    it[this.birth] = req.userbirth
+                    it[this.birth] = req.birth
                     it[this.sex] = req.usersex
                     it[this.userLoginId] = req.userid
                     it[this.introduction] = ""
@@ -107,6 +107,8 @@ class AuthService(private val database: Database) {
             payload["userid"].toString(),
             payload["username"].toString(),
             payload["nickname"].toString(),
+            payload["birth"].toString(),
+            payload["sex"].toString()
         )
 
         return Pair(true, token)
