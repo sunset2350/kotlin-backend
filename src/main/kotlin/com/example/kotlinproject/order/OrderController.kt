@@ -17,7 +17,8 @@ import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping("/order")
-class OrderController(private val orderService: OrderService,private val rabbitTemplate: RabbitTemplate) {
+class OrderController() {
+//class OrderController(private val orderService: OrderService,private val rabbitTemplate: RabbitTemplate) {
 
 
     @Auth
@@ -67,7 +68,7 @@ class OrderController(private val orderService: OrderService,private val rabbitT
         }
         if (result) {
 
-            rabbitTemplate.convertAndSend("orderExchange","orderkey",result)
+//            rabbitTemplate.convertAndSend("orderExchange","orderkey",result)
             return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("data" to response))
 
         }

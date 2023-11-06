@@ -1,5 +1,6 @@
 package com.example.kotlinproject.inquery
 
+
 data class ProductInqueryResponse(
     val id: Long,
     val userLoginId: String,
@@ -9,7 +10,6 @@ data class ProductInqueryResponse(
     val inqueryContent: String,
     val inqueryAnswer: String
 )
-
 
 data class ProductCreateRequest(
     val userLoginId: String,
