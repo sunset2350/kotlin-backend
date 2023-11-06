@@ -1,3 +1,4 @@
+import com.example.kotlinproject.review.ProductReview.default
 import jakarta.annotation.PostConstruct
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Database
@@ -8,15 +9,12 @@ import java.time.LocalDate
 
 object ProductScrap : LongIdTable("ProductReview") {
     val userLoginId = varchar("userLoginId", 100)
-    val username = varchar("username", 100)
-    val productId = varchar("productId", 100)
-    val reviewContent = largeText("reviewContent")
-    val reviewCount = varchar("reviewCount",10)
-    val reviewDate = varchar("reviewDate",50).default(LocalDate.now().toString())
+    val productId = long("productId")
+    val createTime = varchar("date_time",50).default(LocalDate.now().toString())
 }
 
 @Configuration
-class Review(private val database: Database) {
+class Scrap(private val database: Database) {
     @PostConstruct
     fun migrateSchema() {
         transaction(database) {

@@ -1,4 +1,7 @@
 package com.example.kotlinproject.scrap
 
-class data {
-}
+data class ScarpResponse (
+    val id : Long,
+    val productId : Long,
+    val createDate : String
+)

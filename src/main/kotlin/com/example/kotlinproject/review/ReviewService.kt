@@ -12,7 +12,7 @@ class ReviewService(private val rabbitTemplate: RabbitTemplate) {
 
     @Auth
     fun createReview(review: reviewRequest){
-        rabbitTemplate.convertAndSend("product-payment",mapper.writeValueAsString(review))
+        rabbitTemplate.convertAndSend("review-request",mapper.writeValueAsString(review))
     }
 
 

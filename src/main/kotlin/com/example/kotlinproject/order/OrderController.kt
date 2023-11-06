@@ -17,11 +17,10 @@ import kotlin.reflect.typeOf
 @RestController
 @RequestMapping("/order")
 
-class OrderController() {
+//class OrderController() {
 //class OrderController(private val orderService: OrderService,private val rabbitTemplate: RabbitTemplate) {
 
     class OrderController(private val orderService: OrderService) {
-
 
 
         @Auth
@@ -79,9 +78,9 @@ class OrderController() {
             }
             if (result) {
 
-                <<<<<<< HEAD
+
 //            rabbitTemplate.convertAndSend("orderExchange","orderkey",result)
-                ====== =
+
 
                 val order = Order(
                     orderId = response?.id,
@@ -92,7 +91,6 @@ class OrderController() {
                 )
 
                 orderService.createOrderMessage(order)
-                >>>>>>> 2f8b79c15e8bf081eb3b246ffa231c45266e2c70
                 return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("data" to response))
 
             }

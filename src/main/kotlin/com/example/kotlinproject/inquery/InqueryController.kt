@@ -2,6 +2,8 @@ package com.example.kotlinproject.inquery
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
+import com.example.kotlinproject.review.reviewRequest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.jdbc.core.JdbcTemplate
@@ -18,24 +20,26 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-
 @RestController
 @RequestMapping("/inquery")
 class InqueryController(
+    private val inqueryService: InqueryService,
+
     private val template: JdbcTemplate,
-    private val namedTemplate: JdbcTemplate
 ) {
 
 
+
+
     @GetMapping("/{productid}")
-    fun showInquery(@PathVariable productid: String): MutableList<ProductInqueryResponse> =
+    fun showInquery(@PathVariable productid: Long): MutableList<ProductInqueryResponse> =
         template.query("SELECT * FROM ProductInquery where productid = '${productid}'")
         { rs, _ ->
             ProductInqueryResponse(
                 rs.getLong("id"),
                 rs.getString("userLoginId"),
-                rs.getString("nickname"),
-                rs.getString("productId"),
+                rs.getString("username"),
+                rs.getLong("productId"),
                 rs.getString("inqueryCategory"),
                 rs.getString("inqueryContent"),
                 rs.getString("inqueryAnswer")
@@ -44,10 +48,11 @@ class InqueryController(
         }
 
     @Auth
-    @PostMapping("/{productid}/inquery")
+    @PostMapping("/menu/{productid}")
     fun createInquery(
-        @PathVariable productid: String,
-        @RequestBody request: ProductCreateRequest, @RequestAttribute authProfile: AuthProfile
+        @PathVariable productid: Long,
+        @RequestBody request: ProductCreateRequest, @RequestAttribute authProfile: AuthProfile,
+
     ): ResponseEntity<Map<String, Any?>> {
         if (request.validate()) {
             return ResponseEntity
@@ -58,8 +63,7 @@ class InqueryController(
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val dateTime = LocalDateTime.now()
-        val (userLoginId, nickname, productid, inqueryCategory, inqueryContent) = request
-
+        val (userLoginId,username, productid, inqueryCategory, inqueryContent) = request
 
 
         val insertedId = SimpleJdbcInsert(template)
@@ -67,8 +71,8 @@ class InqueryController(
             .usingGeneratedKeyColumns("id")
             .usingColumns(
                 "userLoginId",
-                "nickname",
                 "productid",
+                "username",
                 "inqueryCategory",
                 "inqueryContent",
                 "inqueryDate"
@@ -77,13 +81,25 @@ class InqueryController(
             .executeAndReturnKey(
                 mapOf(
                     "userLoginId" to authProfile.userLoginId,
-                    "nickname" to authProfile.nickname,
                     "productid" to productid,
+                    "username" to authProfile.username,
                     "inqueryCategory" to inqueryCategory,
                     "inqueryContent" to inqueryContent,
                     "inqueryDate" to currentDateTime.format((formatter))
                 )
             )
+        val response = ProductInqueryRequest(
+            id = insertedId.toLong(),
+            userLoginId = authProfile.userLoginId,
+            username = authProfile.username,
+            productId = productid,
+            inqueryCategory = request.inqueryCategory,
+            inqueryContent = request.inqueryContent,
+            inqueryAnswer = null,
+            inqueryDate = currentDateTime.format(formatter)
+        )
+
+        inqueryService.CreateInquery(response)
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(
@@ -91,7 +107,7 @@ class InqueryController(
                     "inquery" to
                             ProductInqueryResponse(
                                 insertedId.toLong(),
-                                userLoginId, nickname, productid, inqueryCategory, inqueryContent, dateTime.toString())
+                                userLoginId, username,productid, inqueryCategory, inqueryContent, dateTime.toString())
                 )
             )
 
@@ -100,3 +116,5 @@ class InqueryController(
 
 
 }
+
+
