@@ -41,6 +41,7 @@ import kotlin.reflect.typeOf
                     it[userName] = authProfile.username
                     it[nickname] = authProfile.nickname
                     it[Permission] = permission
+                    it[permissionContent] = null
                     it[brandName] = request.brandName
                     it[productId] = request.productId
                     it[productName] = request.productName
@@ -60,6 +61,7 @@ import kotlin.reflect.typeOf
                         record[OrderMenu.userName],
                         record[OrderMenu.nickname],
                         record[OrderMenu.Permission],
+                        record[OrderMenu.permissionContent],
                         record[OrderMenu.brandName],
                         record[OrderMenu.productId],
                         record[OrderMenu.productName],
@@ -90,6 +92,7 @@ import kotlin.reflect.typeOf
                     address = request.address
                 )
 
+                println(orderService.createOrderMessage(order))
                 orderService.createOrderMessage(order)
                 return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("data" to response))
 

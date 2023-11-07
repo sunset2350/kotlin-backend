@@ -6,6 +6,7 @@ data class OrderResponse(
     val username: String,
     val nickname: String,
     val permission: String,
+    val permissionContent: String?,
     val brandName : String,
     val productId: Long,
     val productName: String,
@@ -34,6 +35,11 @@ data class Order(
     val productId: Long,
     val quantity: Int,
     val address:String,
+)
+
+data class OrderJudgment(
+    val orderId : Long,
+    val isPermission : String,
 )
 
 data class Review(

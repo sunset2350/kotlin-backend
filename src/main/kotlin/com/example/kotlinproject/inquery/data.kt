@@ -8,7 +8,7 @@ data class ProductInqueryResponse(
     val productId: Long,
     val inqueryCategory: String,
     val inqueryContent: String,
-    val inqueryAnswer: String
+    val inqueryAnswer: String?
 )
 
 data class ProductInqueryRequest(
@@ -22,12 +22,26 @@ data class ProductInqueryRequest(
     val inqueryDate: String
 )
 
+data class InqueryResponse(
+    val id : Long,
+    val productId: Long,
+    val inqueryAnswer: String
+)
+
 data class ProductCreateRequest(
+    val id : Long,
     val userLoginId: String,
     val username: String,
     val productId: Long,
     val inqueryCategory: String,
     val inqueryContent: String,
+)
+
+data class ProductInqeuryResponse(
+    val id : Long,
+    val productId: Long,
+    val inqueryCategory: String,
+    val inqueryAnswer: String
 )
 
 

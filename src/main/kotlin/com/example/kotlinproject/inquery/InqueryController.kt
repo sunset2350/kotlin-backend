@@ -29,8 +29,6 @@ class InqueryController(
 ) {
 
 
-
-
     @GetMapping("/{productid}")
     fun showInquery(@PathVariable productid: Long): MutableList<ProductInqueryResponse> =
         template.query("SELECT * FROM ProductInquery where productid = '${productid}'")
@@ -48,12 +46,32 @@ class InqueryController(
         }
 
     @Auth
+    @GetMapping("/user/{productid}")
+    fun userInquery(
+        @RequestAttribute authProfile: AuthProfile,
+        @PathVariable productid: Long
+    ): MutableList<ProductInqueryResponse> =
+        template.query("SELECT * FROM ProductInquery where productid = '${productid}' and userLoginId = '${authProfile.userLoginId}'")
+        { rs, _ ->
+            ProductInqueryResponse(
+                rs.getLong("id"),
+                rs.getString("userLoginId"),
+                rs.getString("username"),
+                rs.getLong("productId"),
+                rs.getString("inqueryCategory"),
+                rs.getString("inqueryContent"),
+                rs.getString("inqueryAnswer")
+            )
+        }
+
+
+    @Auth
     @PostMapping("/menu/{productid}")
     fun createInquery(
         @PathVariable productid: Long,
         @RequestBody request: ProductCreateRequest, @RequestAttribute authProfile: AuthProfile,
 
-    ): ResponseEntity<Map<String, Any?>> {
+        ): ResponseEntity<Map<String, Any?>> {
         if (request.validate()) {
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -63,7 +81,7 @@ class InqueryController(
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val dateTime = LocalDateTime.now()
-        val (userLoginId,username, productid, inqueryCategory, inqueryContent) = request
+        val (id, userLoginId, username, productid, inqueryCategory, inqueryContent) = request
 
 
         val insertedId = SimpleJdbcInsert(template)
@@ -98,8 +116,7 @@ class InqueryController(
             inqueryAnswer = null,
             inqueryDate = currentDateTime.format(formatter)
         )
-
-        inqueryService.CreateInquery(response)
+        inqueryService.createInquery(response)
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(
@@ -107,7 +124,8 @@ class InqueryController(
                     "inquery" to
                             ProductInqueryResponse(
                                 insertedId.toLong(),
-                                userLoginId, username,productid, inqueryCategory, inqueryContent, dateTime.toString())
+                                userLoginId, username, productid, inqueryCategory, inqueryContent, dateTime.toString()
+                            )
                 )
             )
 

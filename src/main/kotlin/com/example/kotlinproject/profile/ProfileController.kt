@@ -7,8 +7,11 @@ import com.example.kotlinproject.auth.Profiles
 import org.jetbrains.exposed.sql.*
 
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.springframework.core.io.ResourceLoader
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Files
@@ -18,11 +21,11 @@ import java.sql.Connection
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.io.path.Path
 
 @RestController
 @RequestMapping("/user")
-
-class ProfileController {
+class ProfileController(private val resourceLoader: ResourceLoader) {
 
     private val POST_FILE_PATH = "files/post"
 
@@ -59,12 +62,11 @@ class ProfileController {
     @PutMapping("/update")
     fun editProfile(
         @RequestAttribute authProfile: AuthProfile,
+        @RequestParam("file", required = false) file: Optional<MultipartFile>,
         @RequestParam username: String,
         @RequestParam sex: String,
         @RequestParam birth: String,
         @RequestParam introduction: String,
-        @RequestParam("file", required = false) file: Optional<MultipartFile>,
-
         ): ResponseEntity<ProfileResponse> {
 
 
@@ -82,6 +84,7 @@ class ProfileController {
         }
 
 
+        println("시작")
 
 
 
@@ -100,6 +103,7 @@ class ProfileController {
             val result = file.get().inputStream.use { stream ->
                 Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING)
             }
+            println("여기")
 
 
             filesList.add(
@@ -111,6 +115,7 @@ class ProfileController {
             )
 
 
+            println(uuidFileName)
             transaction {
 
                 for (fileInfo in filesList) {
@@ -132,6 +137,7 @@ class ProfileController {
                 }
             }
         }
+
         transaction {
             Profiles.update({ Profiles.userLoginId eq authProfile.userLoginId }) {
                 it[Profiles.username] = username
@@ -139,6 +145,9 @@ class ProfileController {
                 it[Profiles.sex] = sex
                 it[Profiles.birth] = birth
                 it[Profiles.introduction] = introduction
+//                it[Profiles.originalFileName] = originalFileName
+//                it[Profiles.uuidFileName] = uuidFileName
+//                it[Profiles.contentType] = contentType
             }
         }
 
@@ -150,5 +159,20 @@ class ProfileController {
         return ResponseEntity.status(HttpStatus.CREATED).build()
     }
 
+
+    @GetMapping("/files/{uuidFilename}")
+    fun getProfileimg(@PathVariable uuidFilename : String) : ResponseEntity<Any>{
+        val file = Paths.get("$POST_FILE_PATH/$uuidFilename").toFile()
+
+        if(!file.exists()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        }
+
+        val mimeType = Files.probeContentType(file.toPath())
+        val mediaType = MediaType.parseMediaType(mimeType)
+
+        val resource = resourceLoader.getResource("file:$file")
+        return ResponseEntity.ok().contentType(mediaType).body(resource)
+    }
 
 }

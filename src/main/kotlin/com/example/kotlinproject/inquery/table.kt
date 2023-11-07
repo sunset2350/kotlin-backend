@@ -12,7 +12,7 @@ import java.time.LocalDate
 object ProductInquery : LongIdTable("ProductInquery") {
     val userLoginId = varchar("userLoginId", 100)
     val username = varchar("username", 100)
-    val productId = varchar("productId", 100)
+    val productId = long("productId")
     val inqueryCategory = varchar("inqueryCategory", 30)
     val inqueryContent = largeText("inqueryContent")
     val inqueryAnswer = largeText("inqueryAnswer").nullable()
