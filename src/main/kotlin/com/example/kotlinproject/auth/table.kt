@@ -21,7 +21,8 @@ object Profiles : LongIdTable("profile") {
     val originalFileName = varchar("original_file_name", 200)
     val uuidFileName = varchar("uuidFileName", 50)
     val contentType = varchar("content_type", 100)
-    val introduction = varchar("introduction", 30)
+    val introduction = varchar("introduction", 20)
+    //alter table profile modify introduction varchar(20);
 }
 
 
