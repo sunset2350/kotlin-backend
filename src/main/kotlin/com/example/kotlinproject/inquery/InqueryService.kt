@@ -26,17 +26,17 @@ class InqueryService(private val rabbitTemplate: RabbitTemplate) {
     @RabbitListener(queues = ["inquery-response"])
     fun ResponseInquery(message: String) {
         val objectMapper = jacksonObjectMapper()
-        val inqueryRequest: ProductInqueryRequest = objectMapper.readValue(message, ProductInqueryRequest::class.java)
-        print("Received inquiry: $inqueryRequest")
+        val inqueryResponse: InqueryResponse = objectMapper.readValue(message, InqueryResponse::class.java)
+        print("Received inquiry: $inqueryResponse")
 
         transaction {
             ProductInquery.update({
-                (ProductInquery.id eq inqueryRequest.id) and
-                        (ProductInquery.productId eq inqueryRequest.productId) and
+                (ProductInquery.id eq inqueryResponse.id) and
+                        (ProductInquery.productId eq inqueryResponse.productId) and
                         (ProductInquery.inqueryAnswer.isNull())
 
             }) {
-                it[ProductInquery.inqueryAnswer] = inqueryRequest.inqueryAnswer
+                it[ProductInquery.inqueryAnswer] = inqueryResponse.inqueryAnswer
             }
         }
     }

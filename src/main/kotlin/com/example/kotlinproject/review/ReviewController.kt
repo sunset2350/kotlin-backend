@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.sql.Connection
 import java.time.LocalDateTime
@@ -43,6 +44,33 @@ class ReviewController(private val create: ReviewService) {
             }
             return@transaction result
         }
+    @GetMapping("/review-total/{productId}")
+    fun totalReview(@PathVariable productId: Long): ResponseEntity<Map<String, Any?>> {
+        return transaction {
+            val reviewCount = OrderMenu.select {
+                (OrderMenu.productId eq productId and OrderMenu.Permission.eq("true")and OrderMenu.reviewCount.isNotNull())
+            }.count()
+
+            val reviewSum = OrderMenu.select {
+                (OrderMenu.productId eq productId and OrderMenu.Permission.eq("true") and OrderMenu.reviewCount.isNotNull())
+            }.sumOf {
+                it[OrderMenu.reviewCount] ?: 0
+            }
+
+            val reviewTotal = if (reviewCount > 0) {
+                reviewSum / reviewCount
+            } else {
+                0
+            }
+
+            if (reviewCount > 0) {
+                ResponseEntity.status(HttpStatus.OK).body(mapOf("reviewTotal" to reviewTotal))
+            } else {
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("reviewTotal" to 0))
+            }
+        }
+    }
+
 
     @Auth
     @GetMapping("/no-review")

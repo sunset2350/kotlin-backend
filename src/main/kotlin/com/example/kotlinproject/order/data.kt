@@ -48,5 +48,10 @@ data class Review(
     val productId: Long,
     val quantity: Int,
     val address: String,
-
     )
+data class userOrder(
+    val brandName: String,
+    val productId: Long,
+    val productName: String,
+    val productPrice: Int,
+)

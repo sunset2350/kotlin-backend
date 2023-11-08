@@ -6,6 +6,7 @@ data class ProductInqueryResponse(
     val userLoginId: String,
     val username: String,
     val productId: Long,
+    val productName: String,
     val inqueryCategory: String,
     val inqueryContent: String,
     val inqueryAnswer: String?
@@ -15,6 +16,7 @@ data class ProductInqueryRequest(
     val id: Long,
     val userLoginId: String,
     val productId: Long,
+    val productName: String,
     val username: String,
     val inqueryCategory: String,
     val inqueryContent: String,
@@ -25,14 +27,17 @@ data class ProductInqueryRequest(
 data class InqueryResponse(
     val id : Long,
     val productId: Long,
+    val productName: String,
     val inqueryAnswer: String
 )
+
 
 data class ProductCreateRequest(
     val id : Long,
     val userLoginId: String,
     val username: String,
     val productId: Long,
+    val productName: String,
     val inqueryCategory: String,
     val inqueryContent: String,
 )
@@ -40,8 +45,10 @@ data class ProductCreateRequest(
 data class ProductInqeuryResponse(
     val id : Long,
     val productId: Long,
+    val productName : String,
     val inqueryCategory: String,
     val inqueryAnswer: String
+
 )
 
 

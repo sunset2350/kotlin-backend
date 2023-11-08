@@ -13,6 +13,7 @@ object ProductInquery : LongIdTable("ProductInquery") {
     val userLoginId = varchar("userLoginId", 100)
     val username = varchar("username", 100)
     val productId = long("productId")
+    val productName = varchar("productName",30)
     val inqueryCategory = varchar("inqueryCategory", 30)
     val inqueryContent = largeText("inqueryContent")
     val inqueryAnswer = largeText("inqueryAnswer").nullable()

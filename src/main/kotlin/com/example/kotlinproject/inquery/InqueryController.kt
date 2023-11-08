@@ -2,8 +2,6 @@ package com.example.kotlinproject.inquery
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
-import com.example.kotlinproject.review.reviewRequest
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.jdbc.core.JdbcTemplate
@@ -38,6 +36,7 @@ class InqueryController(
                 rs.getString("userLoginId"),
                 rs.getString("username"),
                 rs.getLong("productId"),
+                rs.getString("productName"),
                 rs.getString("inqueryCategory"),
                 rs.getString("inqueryContent"),
                 rs.getString("inqueryAnswer")
@@ -46,18 +45,19 @@ class InqueryController(
         }
 
     @Auth
-    @GetMapping("/user/{productid}")
+    @GetMapping("/user")
     fun userInquery(
         @RequestAttribute authProfile: AuthProfile,
-        @PathVariable productid: Long
+
     ): MutableList<ProductInqueryResponse> =
-        template.query("SELECT * FROM ProductInquery where productid = '${productid}' and userLoginId = '${authProfile.userLoginId}'")
+        template.query("SELECT * FROM ProductInquery where userLoginId = '${authProfile.userLoginId}'")
         { rs, _ ->
             ProductInqueryResponse(
                 rs.getLong("id"),
                 rs.getString("userLoginId"),
                 rs.getString("username"),
                 rs.getLong("productId"),
+                rs.getString("productName"),
                 rs.getString("inqueryCategory"),
                 rs.getString("inqueryContent"),
                 rs.getString("inqueryAnswer")
@@ -81,7 +81,7 @@ class InqueryController(
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val dateTime = LocalDateTime.now()
-        val (id, userLoginId, username, productid, inqueryCategory, inqueryContent) = request
+        val (id, userLoginId, username, productid, productName, inqueryCategory, inqueryContent) = request
 
 
         val insertedId = SimpleJdbcInsert(template)
@@ -90,6 +90,7 @@ class InqueryController(
             .usingColumns(
                 "userLoginId",
                 "productid",
+                "productName",
                 "username",
                 "inqueryCategory",
                 "inqueryContent",
@@ -100,6 +101,7 @@ class InqueryController(
                 mapOf(
                     "userLoginId" to authProfile.userLoginId,
                     "productid" to productid,
+                    "productName" to productName,
                     "username" to authProfile.username,
                     "inqueryCategory" to inqueryCategory,
                     "inqueryContent" to inqueryContent,
@@ -111,6 +113,7 @@ class InqueryController(
             userLoginId = authProfile.userLoginId,
             username = authProfile.username,
             productId = productid,
+            productName = productName,
             inqueryCategory = request.inqueryCategory,
             inqueryContent = request.inqueryContent,
             inqueryAnswer = null,
@@ -124,7 +127,7 @@ class InqueryController(
                     "inquery" to
                             ProductInqueryResponse(
                                 insertedId.toLong(),
-                                userLoginId, username, productid, inqueryCategory, inqueryContent, dateTime.toString()
+                                userLoginId, username, productid,productName, inqueryCategory, inqueryContent, dateTime.toString()
                             )
                 )
             )

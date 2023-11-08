@@ -28,7 +28,7 @@ class ScrapController {
 
     @Auth
     @GetMapping
-    fun showScrap(@RequestAttribute authProfile: AuthProfile): Map<String, Any?> =
+    fun showScrap(@RequestAttribute authProfile: AuthProfile): List<ScarpResponse> =
         transaction(Connection.TRANSACTION_READ_UNCOMMITTED, readOnly = true) {
             val result = ProductScrap.select {
                 ProductScrap.userLoginId eq authProfile.userLoginId and ProductScrap.productId.isNotNull()
@@ -36,13 +36,11 @@ class ScrapController {
                 .map {
 
                     ScarpResponse(
-                        it[ProductScrap.id].value,
                         it[ProductScrap.productId],
-                        it[ProductScrap.createTime]
                     )
                 }
 
-            mapOf("data" to result)
+            return@transaction result
 
         }
 
