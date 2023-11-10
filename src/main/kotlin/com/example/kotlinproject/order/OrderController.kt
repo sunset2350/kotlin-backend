@@ -111,8 +111,6 @@ class OrderController(private val orderService: OrderService) {
                 quantity = request.quantity,
                 address = request.address
             )
-
-            println(orderService.createOrderMessage(order))
             orderService.createOrderMessage(order)
             return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("data" to response))
 

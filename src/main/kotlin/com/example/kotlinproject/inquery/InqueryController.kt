@@ -2,18 +2,14 @@ package com.example.kotlinproject.inquery
 
 import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestAttribute
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -22,7 +18,7 @@ import java.time.format.DateTimeFormatter
 @RequestMapping("/inquery")
 class InqueryController(
     private val inqueryService: InqueryService,
-
+    private val namedTemplate: NamedParameterJdbcTemplate,
     private val template: JdbcTemplate,
 ) {
 
@@ -45,13 +41,51 @@ class InqueryController(
         }
 
     @Auth
-    @GetMapping("/user")
-    fun userInquery(
+    @DeleteMapping("/{productid}")
+    fun deleteInquery(
         @RequestAttribute authProfile: AuthProfile,
+        @PathVariable productid: Long
+    ): ResponseEntity<Any> {
+        val result = template.query(
+            "SELECT id FROM ProductInquery where productid = ? AND profile_id = ?",
+            arrayOf(productid,authProfile.userLoginId)) {rs, _ -> rs}
 
-    ): MutableList<ProductInqueryResponse> =
-        template.query("SELECT * FROM ProductInquery where userLoginId = '${authProfile.userLoginId}'")
-        { rs, _ ->
+        if(result.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        }
+        return ResponseEntity.ok().build()
+    }
+
+    @Auth
+    @GetMapping("/user")
+    fun paging(
+        @RequestAttribute authProfile: AuthProfile,
+        @RequestParam size: Int,
+        @RequestParam page: Int
+    ): PageImpl<ProductInqueryResponse> {
+        val countFrom: String = "SELECT count(*) FROM ProductInquery where userLoginId = '${authProfile.userLoginId}'"
+
+        val totalCount: Long? = namedTemplate.queryForObject(
+            countFrom,
+            mapOf("userLoginId" to authProfile.userLoginId),
+            Long::class.java
+        )
+
+
+        if (totalCount == null || totalCount == 0L) {
+            return PageImpl(listOf<ProductInqueryResponse>(), PageRequest.of(page, size), 0)
+        }
+
+        val selectFrom: String = "SELECT * FROM ProductInquery where userLoginId = :userLoginId"
+        val orderByLimitOffset: String = """
+        ORDER BY id DESC
+        LIMIT $size OFFSET ${size * page}
+    """.trimIndent()
+
+        val content: List<ProductInqueryResponse> = namedTemplate.query(
+            "$selectFrom $orderByLimitOffset",
+            mapOf("userLoginId" to authProfile.userLoginId)
+        ) { rs, _ ->
             ProductInqueryResponse(
                 rs.getLong("id"),
                 rs.getString("userLoginId"),
@@ -64,6 +98,9 @@ class InqueryController(
             )
         }
 
+
+        return PageImpl(content, PageRequest.of(page, size), totalCount)
+    }
 
     @Auth
     @PostMapping("/menu/{productid}")
@@ -127,7 +164,13 @@ class InqueryController(
                     "inquery" to
                             ProductInqueryResponse(
                                 insertedId.toLong(),
-                                userLoginId, username, productid,productName, inqueryCategory, inqueryContent, dateTime.toString()
+                                userLoginId,
+                                username,
+                                productid,
+                                productName,
+                                inqueryCategory,
+                                inqueryContent,
+                                dateTime.toString()
                             )
                 )
             )

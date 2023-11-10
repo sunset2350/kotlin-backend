@@ -44,6 +44,7 @@ class ScrapController {
 
         }
 
+
     @Auth
     @PostMapping("/{productid}")
     fun createScrap(
@@ -79,7 +80,6 @@ class ScrapController {
                     .body(mapOf("message" to "스크랩을 처리하는 중에 오류가 발생했습니다 (Error while processing scrap)"))
             }
         }
-
     }
 
     @Auth

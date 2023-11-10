@@ -4,12 +4,11 @@ import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
 import com.example.kotlinproject.order.OrderMenu
 import kotlinx.coroutines.selects.select
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -44,11 +43,12 @@ class ReviewController(private val create: ReviewService) {
             }
             return@transaction result
         }
+
     @GetMapping("/review-total/{productId}")
-    fun totalReview(@PathVariable productId: Long): ResponseEntity<Map<String, Any?>> {
+    fun totalReview(@PathVariable productId: Long): ResponseEntity<Map<String,Any>> {
         return transaction {
             val reviewCount = OrderMenu.select {
-                (OrderMenu.productId eq productId and OrderMenu.Permission.eq("true")and OrderMenu.reviewCount.isNotNull())
+                (OrderMenu.productId eq productId and OrderMenu.Permission.eq("true") and OrderMenu.reviewCount.isNotNull())
             }.count()
 
             val reviewSum = OrderMenu.select {
@@ -56,6 +56,7 @@ class ReviewController(private val create: ReviewService) {
             }.sumOf {
                 it[OrderMenu.reviewCount] ?: 0
             }
+
 
             val reviewTotal = if (reviewCount > 0) {
                 reviewSum / reviewCount
@@ -73,15 +74,20 @@ class ReviewController(private val create: ReviewService) {
 
 
     @Auth
-    @GetMapping("/no-review")
-    fun showNonReview(@RequestAttribute authProfile: AuthProfile): List<noReivewResponse> {
-
+    @GetMapping("/no-review{key}")
+    fun showNonReview(@RequestAttribute authProfile: AuthProfile, @RequestParam(required=false) key: String?): List<noReivewResponse> {
+        println("${key}")
         val result = transaction {
             OrderMenu.select {
                 (OrderMenu.userLoginId eq authProfile.userLoginId) and
-                        (OrderMenu.Permission.eq("true")) and
+                        (OrderMenu.Permission eq "true") and
                         (OrderMenu.reviewContent.isNull()) and
-                        (OrderMenu.reviewCount.isNull())
+                        (OrderMenu.reviewCount.isNull()) and
+                        if (key != null) {
+                            ((OrderMenu.productName like "%${key}%") or (OrderMenu.brandName like "%${key}%"))
+                        } else {
+                            Op.TRUE
+                        }
             }.map {
                 noReivewResponse(
                     it[OrderMenu.productId],
@@ -91,10 +97,8 @@ class ReviewController(private val create: ReviewService) {
                     it[OrderMenu.brandName]
                 )
             }
-
         }
         return result
-
     }
 
     @Auth

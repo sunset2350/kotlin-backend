@@ -20,6 +20,7 @@ class OrderService(private val rabbitTemplate: RabbitTemplate) {
 
     @Auth
     fun createOrderMessage(order: Order) {
+        println(order)
         rabbitTemplate.convertAndSend("product-payment", mapper.writeValueAsString(order))
     }
 
@@ -46,7 +47,8 @@ class OrderService(private val rabbitTemplate: RabbitTemplate) {
                     it[permissionContent] = "재고 부족"
                 }
             }
-        } else {
+        }
+        if(orderJudgment.isPermission == "true") {
             println("주문완료")
             transaction {
                 OrderMenu.update ({
