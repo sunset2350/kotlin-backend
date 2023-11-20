@@ -18,7 +18,7 @@ class InqueryService(private val rabbitTemplate: RabbitTemplate) {
 
     @Auth
     fun createInquery(InqueryRequest: ProductInqueryRequest) {
-
+        print(InqueryRequest)
         rabbitTemplate.convertAndSend("product-inquery", mapper.writeValueAsString(InqueryRequest))
     }
 

@@ -40,7 +40,7 @@ class ReviewController(private val create: ReviewService) {
                     it[OrderMenu.reviewResponse]
                 )
 
-            }
+            }.reversed()
             return@transaction result
         }
 
@@ -97,7 +97,7 @@ class ReviewController(private val create: ReviewService) {
                     it[OrderMenu.brandName]
                 )
             }
-        }
+        }.reversed()
         return result
     }
 
@@ -119,7 +119,7 @@ class ReviewController(private val create: ReviewService) {
                     it[OrderMenu.reviewContent],
                     it[OrderMenu.reviewResponse],
                 )
-            }
+            }.reversed()
 
         }
         return result
@@ -159,7 +159,6 @@ class ReviewController(private val create: ReviewService) {
                     gender = authProfile.sex,
                     birth = authProfile.birth
                 )
-                println(response)
                 create.createReview(response)
             }
 

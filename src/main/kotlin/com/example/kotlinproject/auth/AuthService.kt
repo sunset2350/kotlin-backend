@@ -44,7 +44,7 @@ class AuthService(private val database: Database) {
                     it[this.sex] = req.usersex
                     it[this.userLoginId] = req.userid
                     it[this.introduction] = ""
-                    it[this.uuidFileName] = "ef65cd06-0772-4c3e-b1d6-aaee557085f7.jpg"
+                    it[this.uuidFileName] = "81b9754a-8ab4-4541-b799-2702299bf365.jpg"
                     it[this.originalFileName] = "defaultimg.jpg"
                     it[this.contentType] = "image/jpeg"
 

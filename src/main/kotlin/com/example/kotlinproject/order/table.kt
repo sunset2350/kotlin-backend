@@ -17,15 +17,18 @@ object OrderMenu : LongIdTable("OrderMenu") {
     val Permission = varchar("is_permission", 30)
     val permissionContent = varchar("permissionContent" , 50).nullable()
     val brandName = varchar("brandName",50)
+    val phonenumber = varchar("phonenumber",50)
     val productId = long("productId")
     val productName = varchar("productName" , 100)
     val quantity = integer("quantity")
+    val detailaddress = varchar("detail_address", 100)
     val address = varchar("address",100)
     val reviewContent = largeText("reviewContent").nullable()
     val reviewCount = integer("reviewcount").nullable()
     val reviewResponse = largeText("reviewResponse").nullable()
     val productPrice = integer("productPrice")
     val OrderDate = varchar("orderDate",100).default(LocalDate.now().toString())
+    val imp_uid = varchar("imp_uid",100)
 }
 
 @Configuration

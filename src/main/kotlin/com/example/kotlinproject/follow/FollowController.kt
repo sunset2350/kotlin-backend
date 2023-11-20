@@ -25,7 +25,7 @@ class FollowController {
 
     @Auth
     @GetMapping
-    fun showScrap(@RequestAttribute authProfile: AuthProfile): Map<String, Any?> =
+    fun showScrap(@RequestAttribute authProfile: AuthProfile): List<followResponse> =
         transaction(Connection.TRANSACTION_READ_UNCOMMITTED, readOnly = true) {
             val result = BrandFollow.select {
                 BrandFollow.userLoginId eq authProfile.userLoginId and BrandFollow.brandName.isNotNull()
@@ -39,7 +39,7 @@ class FollowController {
                     )
                 }
 
-            mapOf("data" to result)
+            return@transaction result
 
         }
 

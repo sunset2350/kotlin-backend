@@ -24,58 +24,64 @@ import kotlin.reflect.typeOf
 class OrderController(private val orderService: OrderService) {
 
     @Auth
-    @GetMapping("/user")
-    fun showOrderMenu(@RequestAttribute authProfile: AuthProfile) : List<userOrder>{
+    @GetMapping("/user/{permission}")
+    fun showOrderMenu(@RequestAttribute authProfile: AuthProfile,
+                      @PathVariable permission: String): List<userOrder> {
         val result = transaction {
             OrderMenu.select {
-                OrderMenu.userLoginId eq authProfile.userLoginId and OrderMenu.Permission.eq("true")
+                OrderMenu.userLoginId eq authProfile.userLoginId and OrderMenu.Permission.eq("${permission}")
             }.map {
                 userOrder(
-                    it[OrderMenu.brandName],
-                    it[OrderMenu.productId],
-                    it[OrderMenu.productName],
-                    it[OrderMenu.productPrice]
+                        it[OrderMenu.id].value,
+                        it[OrderMenu.brandName],
+                        it[OrderMenu.productId],
+                        it[OrderMenu.productName],
+                        it[OrderMenu.productPrice],
+                        it[OrderMenu.permissionContent]
                 )
-            }
+            }.reversed()
 
-            }
-        return result
         }
+        return result
+    }
 
 
     @Auth
     @PostMapping("/{productId}")
     fun orderMenu(
-        @RequestBody request: OrderRequest, @RequestAttribute authProfile: AuthProfile,
+            @RequestBody request: OrderRequest, @RequestAttribute authProfile: AuthProfile,
     ): ResponseEntity<Map<String, Any?>> {
 
         val currentDateTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val permission = "false"
+        val permission = "wait"
 
 
 
         val (result, response) = transaction {
             val result = OrderMenu.insert {
                 it[userLoginId] = authProfile.userLoginId
-                it[userName] = authProfile.username
+                it[userName] = request.username;
                 it[nickname] = authProfile.nickname
                 it[Permission] = permission
                 it[permissionContent] = null
                 it[brandName] = request.brandName
                 it[productId] = request.productId
                 it[productName] = request.productName
+                it[detailaddress] = request.detailaddress
                 it[quantity] = request.quantity
                 it[address] = request.address
+                it[phonenumber] = request.phonenumber
                 it[productPrice] = request.productPrice
                 it[OrderDate] = currentDateTime.format(formatter)
+                it[imp_uid] = request.imp_uid
             }.resultedValues ?: return@transaction Pair(false, null)
 
             val record = result.first()
 
 
             return@transaction Pair(
-                true, OrderResponse(
+                    true, OrderResponse(
                     record[OrderMenu.id].value,
                     record[OrderMenu.userLoginId],
                     record[OrderMenu.userName],
@@ -91,8 +97,12 @@ class OrderController(private val orderService: OrderService) {
                     record[OrderMenu.reviewCount],
                     record[OrderMenu.OrderDate].toString(),
                     record[OrderMenu.productPrice],
-                    record[OrderMenu.reviewResponse]
-                )
+                    record[OrderMenu.reviewResponse],
+                    record[OrderMenu.phonenumber],
+                    record[OrderMenu.detailaddress],
+                    record[OrderMenu.imp_uid]
+
+            )
 
 
             )
@@ -105,14 +115,14 @@ class OrderController(private val orderService: OrderService) {
 
 
             val order = Order(
-                orderId = response?.id,
-                userId = authProfile.id,
-                productId = request.productId,
-                quantity = request.quantity,
-                address = request.address
+                    orderId = response?.id,
+                    userId = authProfile.id,
+                    productId = request.productId,
+                    quantity = request.quantity,
+                    address = request.address
             )
             orderService.createOrderMessage(order)
-            return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("data" to response))
+            return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("data" to order))
 
         }
 

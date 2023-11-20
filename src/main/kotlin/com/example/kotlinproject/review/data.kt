@@ -35,7 +35,7 @@ data class inReviewResponse(
     val createDate : String,
     val reviewCount : Int?,
     val reviewContent: String?,
-    val reviewAnswer: String?
+    val reviewResponse: String?
 )
 
 

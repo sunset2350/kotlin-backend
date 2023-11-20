@@ -4,6 +4,7 @@ import com.example.kotlinproject.auth.Auth
 import com.example.kotlinproject.auth.AuthProfile
 
 import com.example.kotlinproject.auth.Profiles
+import com.example.kotlinproject.order.OrderMenu
 import org.jetbrains.exposed.sql.*
 
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -64,6 +65,7 @@ class ProfileController(private val resourceLoader: ResourceLoader) {
         @RequestAttribute authProfile: AuthProfile,
         @RequestParam("file", required = false) file: Optional<MultipartFile>,
         @RequestParam username: String,
+        @RequestParam nickname : String,
         @RequestParam sex: String,
         @RequestParam birth: String,
         @RequestParam introduction: String,
@@ -173,6 +175,63 @@ class ProfileController(private val resourceLoader: ResourceLoader) {
 
         val resource = resourceLoader.getResource("file:$file")
         return ResponseEntity.ok().contentType(mediaType).body(resource)
+    }
+
+    @Auth
+    @GetMapping("/amount")
+    fun totalAmount(@RequestAttribute authProfile: AuthProfile): ResponseEntity<Any> {
+        val result = transaction {
+            OrderMenu.select {
+                OrderMenu.userLoginId eq authProfile.userLoginId and
+                        OrderMenu.Permission.eq("true")
+            }.toList()
+                .sumOf {
+                    it[OrderMenu.productPrice]
+                }
+
+
+        }
+        return ResponseEntity.ok(mapOf("totalAmount" to result))
+    }
+
+    @Auth
+    @GetMapping("/amount/month")
+    fun monthAmount(@RequestAttribute authProfile: AuthProfile) : ResponseEntity<Any> {
+        val result = transaction {
+            val monthlyData =
+            OrderMenu.select{
+                OrderMenu.userLoginId eq authProfile.userLoginId and
+                        OrderMenu.Permission.eq("true")
+
+            }.toList()
+                .groupBy {
+                    it[OrderMenu.OrderDate].substring(0,7)
+                }.mapValues { (_, orders) ->
+                    orders.sumOf {
+                        it[OrderMenu.productPrice]
+                    }
+                }
+
+            val allMonth = (1..12).map {it.toString().padStart(2,'0')}
+            val resultData = allMonth.map{ month ->
+                val key = "2023-$month"
+                key to (monthlyData[key] ?: 0)
+            }.toMap()
+            mapOf("monthAaount" to resultData)
+        }
+        return ResponseEntity.ok(result)
+    }
+
+    @Auth
+    @GetMapping("count")
+    fun countOrder(@RequestAttribute authProfile: AuthProfile) : ResponseEntity<Any>{
+        val result = transaction {
+            OrderMenu.select {
+                OrderMenu.userLoginId eq authProfile.userLoginId and
+                        OrderMenu.Permission.eq("true")
+            }.count()
+        }
+        return ResponseEntity.ok(mapOf("totalCount" to result))
     }
 
 }
