@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.context.annotation.Configuration
 import java.time.LocalDate
 
-object ProductScrap : LongIdTable("ProductScrap") {
+object ProductScrap : LongIdTable("productscrap") {
     val userLoginId = varchar("userLoginId", 100)
     val productId = long("productId")
     val createTime = varchar("date_time",50).default(LocalDate.now().toString())

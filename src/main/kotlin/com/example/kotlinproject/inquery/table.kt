@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.context.annotation.Configuration
 import java.time.LocalDate
 
-object ProductInquery : LongIdTable("ProductInquery") {
+object ProductInquery : LongIdTable("productinquery") {
     val userLoginId = varchar("userLoginId", 100)
     val username = varchar("username", 100)
     val productId = long("productId")

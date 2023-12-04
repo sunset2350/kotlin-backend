@@ -27,21 +27,28 @@ class AuthController(private val service: AuthService) {
         }
     }
 
-    @PostMapping("/signin")
+    @PostMapping(value = ["/signin"])
     fun signIn(
         @RequestParam userLoginId: String,
         @RequestParam userPassword: String,
         res: HttpServletResponse,
+        @RequestHeader(value = "referer", required = false) referer: String,
+
     ): ResponseEntity<*> {
+        println(userLoginId)
+        println(userPassword)
+        println(referer)
 
         val (result, message) = service.authenticate(userLoginId, userPassword)
+
+        val errorUrl = referer + "login"
 
 
         if (result) {
             val cookie = Cookie("token", message)
             cookie.path = "/"
             cookie.maxAge = (JwtUtil.TOKEN_TIMEOUT / 1000L).toInt()
-            cookie.domain = "localhost"
+            cookie.domain = referer.split("/")[2].split(":")[0]
 
             res.addCookie(cookie)
 
@@ -50,7 +57,7 @@ class AuthController(private val service: AuthService) {
                 .status(HttpStatus.FOUND)
                 .location(
                     ServletUriComponentsBuilder
-                        .fromHttpUrl("http://localhost:5000/")
+                        .fromHttpUrl(referer)
                         .build().toUri()
                 )
 
@@ -61,7 +68,7 @@ class AuthController(private val service: AuthService) {
             .status(HttpStatus.FOUND)
             .location(
                 ServletUriComponentsBuilder
-                    .fromHttpUrl("http://localhost:5000/login.html?err=$message")
+                    .fromHttpUrl("$referer?err=$message")
                     .build()
                     .toUri()
             ).build<Any>()

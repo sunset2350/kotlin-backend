@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.context.annotation.Configuration
 import java.time.LocalDate
 
-object OrderMenu : LongIdTable("OrderMenu") {
+object OrderMenu : LongIdTable("ordermenu") {
     val userLoginId = varchar("userLoginId" , 30)
     val userName = varchar("username",20)
     val nickname = varchar("nickname",30)

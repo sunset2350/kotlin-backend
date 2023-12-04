@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.context.annotation.Configuration
 import java.time.LocalDate
 
-object BrandFollow : LongIdTable("BrandNameFollow") {
+object BrandFollow : LongIdTable("brandnamefollow") {
     val userLoginId = varchar("userLoginId", 100)
     val brandName = varchar("brandName",30)
     val createTime = varchar("date_time",50).default(LocalDate.now().toString())
