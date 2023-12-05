@@ -35,13 +35,8 @@ class AuthController(private val service: AuthService) {
         @RequestHeader(value = "referer", required = false) referer: String,
 
     ): ResponseEntity<*> {
-        println(userLoginId)
-        println(userPassword)
-        println(referer)
 
         val (result, message) = service.authenticate(userLoginId, userPassword)
-
-        val errorUrl = referer + "login"
 
 
         if (result) {
@@ -57,7 +52,7 @@ class AuthController(private val service: AuthService) {
                 .status(HttpStatus.FOUND)
                 .location(
                     ServletUriComponentsBuilder
-                        .fromHttpUrl(referer)
+                        .fromHttpUrl(referer.split("/")[2].split(":")[0])
                         .build().toUri()
                 )
 
