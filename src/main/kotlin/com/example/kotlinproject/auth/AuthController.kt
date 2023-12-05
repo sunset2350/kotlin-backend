@@ -36,7 +36,9 @@ class AuthController(private val service: AuthService) {
 
     ): ResponseEntity<*> {
 
+        val home = "${referer.split("/")[0]}//${referer.split("/")[2]}"
         val (result, message) = service.authenticate(userLoginId, userPassword)
+        println(home)
 
 
         if (result) {
@@ -52,7 +54,7 @@ class AuthController(private val service: AuthService) {
                 .status(HttpStatus.FOUND)
                 .location(
                     ServletUriComponentsBuilder
-                        .fromHttpUrl(referer.split("/")[2].split(":")[0])
+                        .fromHttpUrl(home)
                         .build().toUri()
                 )
 
@@ -63,7 +65,7 @@ class AuthController(private val service: AuthService) {
             .status(HttpStatus.FOUND)
             .location(
                 ServletUriComponentsBuilder
-                    .fromHttpUrl("$referer?err=$message")
+                    .fromHttpUrl("$home?err=$message")
                     .build()
                     .toUri()
             ).build<Any>()
